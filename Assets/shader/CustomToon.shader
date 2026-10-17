@@ -7,12 +7,13 @@ Shader "LD60/CustomToon"
         _AmbientColor ("Ambient Color", Color) = (0.1, 0.1, 0.1, 1)
         _Alpha("Alpha", Range(0, 1)) = 1
         _BandsCount("Bands Count", Range(2, 4)) = 2
+        _BandBlendMin("Band Blend (Min)", Range(0, 1)) = 0
+        _BandBlendMax("Band Blend (Max)", Range(0, 1)) = 0.01
     }
     SubShader
     {
         Tags 
         { 
-            "RenderType"="Opaque" 
             "RenderType"="ForwardBase" 
             "PassFlags"="OnlyDirectional" 
         }
@@ -23,24 +24,27 @@ Shader "LD60/CustomToon"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile_fog
+            #pragma multi_compile_fwdbase
             
             #include "UnityCG.cginc"
+            #include "Lighting.cginc"
+            #include "AutoLight.cginc"
 
             struct appdata
             {
                 float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
                 float3 normal : NORMAL;
+                float2 uv : TEXCOORD0;
             };
 
             struct v2f
             {
-                float2 uv : TEXCOORD0;
+                float4 pos : SV_POSITION;
                 float3 worldNormal : NORMAL;
+                float2 uv : TEXCOORD0;
+                float3 viewDir : TEXCOORD1;
 
-                UNITY_FOG_COORDS(1)
-                float4 vertex : SV_POSITION;
+                UNITY_SHADOW_COORDS(2)
             };
 
             sampler2D _MainTex;
@@ -48,18 +52,19 @@ Shader "LD60/CustomToon"
             float4 _TintColor;
             float4 _AmbientColor;
             fixed _Alpha;
+            fixed _BandBlendMin;
+            fixed _BandBlendMax;
             int _BandsCount;
-
-            // -- declarations
-            uniform float4 _LightColor0;
             
             v2f vert (appdata v)
             {
                 v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.pos = UnityObjectToClipPos(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 o.worldNormal = UnityObjectToWorldNormal(v.normal);
-                UNITY_TRANSFER_FOG(o,o.vertex);
+                o.viewDir = WorldSpaceViewDir(v.vertex);
+
+                UNITY_TRANSFER_SHADOW(o, o.pos);
                 return o;
             }
             
@@ -72,20 +77,21 @@ Shader "LD60/CustomToon"
                 float shade = 0;
                 float step = 1.0 / (float)_BandsCount;
 
-                float curstep = 0;
-
                 [unroll(4)]
                 for(int i = 0; i < _BandsCount; ++i)
                 {
-                    if(ndotl <= curstep)
+                    if(ndotl <= shade)
                     {
                         break;
                     }
 
-                    curstep += step;
                     shade += step;
                 }
 
+                shade = smoothstep(_BandBlendMin, _BandBlendMax, shade);
+
+                // -- shadows and ambient
+                // float shadow = UNITY_SHADOW_ATTENUATION(IN);
                 float ambient = ShadeSH9(float4(IN.worldNormal, 1.0));
 
                 float3 finallight = lerp(ambient + _AmbientColor, _LightColor0.rgb, shade);
@@ -93,5 +99,7 @@ Shader "LD60/CustomToon"
             }
             ENDCG
         }
+
+        UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
     }
 }

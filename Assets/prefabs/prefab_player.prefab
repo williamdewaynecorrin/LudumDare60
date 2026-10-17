@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 4622830869878237199}
   - component: {fileID: 8576955087803796861}
   - component: {fileID: 5988756556946456871}
+  - component: {fileID: 6265152335749716148}
+  - component: {fileID: 2631175417945713485}
   m_Layer: 7
   m_Name: prefab_player
   m_TagString: Untagged
@@ -27,7 +29,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8858465783973244168}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.0000005066394, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 5, y: 0, z: -6.8258567}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -95,29 +97,74 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a93ca37b053b37745abd272bd9e3ed32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  gameconstants: {fileID: 11400000, guid: 382a8c3920ac60042ae2f87904262573, type: 2}
+  playercamera: {fileID: 0}
+  health: {fileID: 6265152335749716148}
+  character: {fileID: 4622830869878237199}
+  anim: {fileID: 7565307968877195310}
+  acceleration: 0.02
+  maxspeed: 0.04
+  stopsmoothing: 0.0425
+  turnsmoothing: 0.025
   groundmask:
     serializedVersion: 2
     m_Bits: 320
   mingroundcastdist: 0.1
-  acceleration: 1
-  maxspeed: 5
-  stopfriction: 0.5
-  character: {fileID: 4622830869878237199}
   gravityforce: 0.1
-  jumpforce: 1
+  jumpforce: 0.05
   coyotetimeseconds: 0.1
   sfxjump:
     clip: {fileID: 8300000, guid: 244b684125755564cb4b886bc30211ac, type: 3}
-    volumemult: 1
+    volumemult: 0.75
     pitch:
-      min: 1
-      max: 1
+      min: 2
+      max: 2.1
   sfxland:
     clip: {fileID: 8300000, guid: cde9938b817481d40a82b39b21d7da92, type: 3}
-    volumemult: 0
+    volumemult: 1
     pitch:
-      min: 0
-      max: 1
+      min: 1.7
+      max: 1.8
+--- !u!114 &6265152335749716148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8858465783973244168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f42525f928a4f5469edcf1ad1933507, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  maxhealth: 100
+  ondeath:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 5988756556946456871}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnDeath
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &2631175417945713485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8858465783973244168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b6b733c231482e4b9b3ce5b09da14df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerScore
 --- !u!1001 &6099685390027396629
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -205,6 +252,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 33291f071a7a1034580c712b47755202, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7565307968877195310}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 33291f071a7a1034580c712b47755202, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6455216065407216323}
   m_SourcePrefab: {fileID: 100100000, guid: 33291f071a7a1034580c712b47755202, type: 3}
 --- !u!4 &5993401556383592958 stripped
 Transform:
@@ -238,3 +288,28 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6455216065407216323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6370067184075680580}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ee36da359cc7cd418eca87597f60731, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  player: {fileID: 5988756556946456871}
+  sfxstepleft:
+    clip: {fileID: 8300000, guid: 3c5303bbff1444c4b9d3581ffae7784b, type: 3}
+    volumemult: 0.5
+    pitch:
+      min: 3.2
+      max: 3.2
+  sfxstepright:
+    clip: {fileID: 8300000, guid: 3c5303bbff1444c4b9d3581ffae7784b, type: 3}
+    volumemult: 0.5
+    pitch:
+      min: 3.2
+      max: 3.2

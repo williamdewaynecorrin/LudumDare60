@@ -1,0 +1,8 @@
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "LD60/Game Constants", menuName = "Game Constants")]
+public class SOGameConstants : ScriptableObject
+{
+    public int playerkillplanedamage = 10;
+    public float playerfallrespawntime = 3.0f;
+}

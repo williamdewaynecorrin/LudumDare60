@@ -5,7 +5,7 @@ public static class Inputs
     public static float HorizontalMove()
     {
         float horiz = (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) ? 1.0f : 0.0f;
-        horiz += (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftAlt)) ? -1.0f : 0.0f;
+        horiz += (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) ? -1.0f : 0.0f;
         return horiz;
     }
 
@@ -19,5 +19,15 @@ public static class Inputs
     public static bool JumpTriggered()
     {
         return Input.GetKeyDown(KeyCode.Space);
+    }
+
+    public static bool RotateCameraHold()
+    {
+        return true;
+    }
+
+    public static float RotateCameraYAW()
+    {
+        return Input.mousePositionDelta.x;
     }
 }

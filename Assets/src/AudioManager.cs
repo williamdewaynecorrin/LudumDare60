@@ -6,7 +6,7 @@ public class AudioManager : MonoBehaviour
     public static float gSFXVolumeMult = 1.0f * gMasterVolumeMult;
     public static float gMusicVolumeMult = 1.0f * gMasterVolumeMult;
 
-    public AudioSource Play2D(AudioClipExt clipdata, float volumemult = 1.0f, float pitch = 1.0f, ulong delay = 0u)
+    public static AudioSource Play2D(AudioClipExt clipdata, float volumemult = 1.0f, float pitch = 1.0f, ulong delay = 0u)
     {
         if (!clipdata.IsValid())
             return null;
@@ -14,6 +14,7 @@ public class AudioManager : MonoBehaviour
         AudioSource source = new GameObject(string.Format("audio_oneshot_{0}", clipdata.clip.name)).AddComponent<AudioSource>();
         source.spatialBlend = 0.0f;
 
+        source.clip = clipdata.clip;
         source.volume = volumemult * clipdata.volumemult * gSFXVolumeMult;
         source.pitch = pitch * clipdata.pitch.PickValue();
 
@@ -23,7 +24,7 @@ public class AudioManager : MonoBehaviour
         return source;
     }
 
-    public AudioSource Play3D(AudioClipExt clipdata, Vector3 pos, float volumemult = 1.0f, float pitch = 1.0f, ulong delay = 0u)
+    public static AudioSource Play3D(AudioClipExt clipdata, Vector3 pos, float volumemult = 1.0f, float pitch = 1.0f, ulong delay = 0u)
     {
         if (!clipdata.IsValid())
             return null;
@@ -32,6 +33,7 @@ public class AudioManager : MonoBehaviour
         source.transform.position = pos;
         source.spatialBlend = 1.0f;
 
+        source.clip = clipdata.clip;
         source.volume = volumemult * clipdata.volumemult * gSFXVolumeMult;
         source.pitch = pitch * clipdata.pitch.PickValue();
 

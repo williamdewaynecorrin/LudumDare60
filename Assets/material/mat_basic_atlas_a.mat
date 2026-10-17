@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: mat_environment_atlas_a
+  m_Name: mat_basic_atlas_a
   m_Shader: {fileID: 4800000, guid: db1d065aed0217440a683d8d3d062b93, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -19,7 +19,7 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: 
+  m_LockedProperties: _Alpha
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -62,7 +62,10 @@ Material:
     m_Ints: []
     m_Floats:
     - _Alpha: 1
-    - _BandsCount: 3.08
+    - _BandBlend: 1
+    - _BandBlendMax: 1
+    - _BandBlendMin: 0
+    - _BandsCount: 2
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1

@@ -105,3 +105,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac61e6381457f964aa86f6ee7b7ed8c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  player: {fileID: 0}
+  startingoffset: {x: 0, y: 2, z: -5}
+  sensitivityyaw: 1
+  sensitivitypitch: 1
+  smoothspeed: 0.125
+  facingplayerdotthresh: 0
+  smoothrotationspeed: 0.005
+  rotationverticalcontribution: 0.1
