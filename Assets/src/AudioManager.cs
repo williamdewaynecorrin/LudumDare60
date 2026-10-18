@@ -2,9 +2,47 @@ using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
+    public static AudioManager Instance => instance;
+    private static AudioManager instance = null;
+
     public static float gMasterVolumeMult = 1.0f;
     public static float gSFXVolumeMult = 1.0f * gMasterVolumeMult;
     public static float gMusicVolumeMult = 1.0f * gMasterVolumeMult;
+
+    [SerializeField]
+    private AudioSource musicmain;
+    [SerializeField]
+    private AudioSource musicboom;
+    [Range(0f, 1f)]
+    [SerializeField]
+    private float boomlerp = 0.1f;
+
+    private float targetboomamount = 0f;
+    private float currentboomamount = 0;
+
+    void Awake()
+    {
+        musicmain.loop = true;
+        musicboom.loop = true;
+        musicmain.Play();
+        musicboom.Play();
+
+        instance = this;
+    }
+
+    void FixedUpdate()
+    {
+        currentboomamount = Mathf.Lerp(currentboomamount, targetboomamount, boomlerp);
+
+        float mainvol = 1.0f - currentboomamount;
+        musicmain.volume = mainvol *  gMusicVolumeMult;
+        musicboom.volume = currentboomamount * gMusicVolumeMult;
+    }
+
+    public void SetBoomAmount(float boomamt)
+    {
+        targetboomamount = Mathf.Clamp01(boomamt);
+    }
 
     public static AudioSource Play2D(AudioClipExt clipdata, float volumemult = 1.0f, float pitch = 1.0f, ulong delay = 0u)
     {

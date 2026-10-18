@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: mat_environment_wall_trim_b
+  m_Shader: {fileID: 4800000, guid: db1d065aed0217440a683d8d3d062b93, type: 3}
+  m_Parent: {fileID: 2100000, guid: 15fcfb1249b4afa41998b5362039d05b, type: 2}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: d3f0159a9475c1a4fa8299bf08f310de, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BandBlendMax: 1
+    - _BandBlendMin: 0
+    m_Colors:
+    - _TintColor: {r: 0.7075472, g: 0.6609953, b: 0.52398545, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

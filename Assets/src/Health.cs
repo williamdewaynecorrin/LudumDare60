@@ -8,6 +8,7 @@ public class Health : MonoBehaviour
     private int health;
 
     public int CurrentHealth => health;
+    public bool IsDead => health <= 0f;
 
     void Awake()
     {

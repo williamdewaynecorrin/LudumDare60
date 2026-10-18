@@ -14,6 +14,8 @@ public class PlayerCamera : MonoBehaviour
     [SerializeField]
     private float sensitivitypitch = 1.0f;
     [SerializeField]
+    private MinMaxFloat pitchclamp;
+    [SerializeField]
     private bool autocamenabled = false;
     [SerializeField]
     private float smoothspeed = 1.0f;
@@ -30,8 +32,8 @@ public class PlayerCamera : MonoBehaviour
     private Quaternion startingplayerrot;
     private Vector3 playermovementforward;
     private Vector3 playermovementright;
-    private float manualyaw = 0f;
     private float forcedyaw = 0f;
+    private float forcedpitch = 0f;
 
     public Vector3 PlayerMovementForward => playermovementforward;
     public Vector3 PlayerMovementRight => playermovementright;
@@ -45,9 +47,12 @@ public class PlayerCamera : MonoBehaviour
     void LateUpdate()
     {
         // -- rotation early
-        if(Inputs.RotateCameraHold())
+        if (Inputs.RotateCameraHold())
         {
             forcedyaw += Inputs.RotateCameraYAW() * sensitivityyaw;
+
+            forcedpitch += Inputs.RotateCameraPitch() * sensitivitypitch;
+            forcedpitch = Mathf.Clamp(forcedpitch, pitchclamp.min, pitchclamp.max);
         }
 
         Vector3 targetselfpos = transform.position;
@@ -60,7 +65,7 @@ public class PlayerCamera : MonoBehaviour
                 Quaternion diff = player.transform.localRotation * Quaternion.Inverse(startingplayerrot);
                 forcedyaw = diff.eulerAngles.y;
             }
-        }   
+        }
 
         Vector3 totarg = player.CameraTarget - targetselfpos + Vector3.up * rotationverticalcontribution;
         Vector3 lookat = totarg.normalized;
@@ -72,20 +77,16 @@ public class PlayerCamera : MonoBehaviour
         Quaternion yawaddrot = Quaternion.Euler(0f, forcedyaw, 0f);
 
         // -- position
-        switch(player.State)
+        if (player.State == EPlayerState.eFree || player.State == EPlayerState.eFallingOffLevel || player.State == EPlayerState.eBoomin)
         {
-            case EPlayerState.eFree:
-                {
-                    Vector3 rotatedoffset = yawaddrot * startingoffset;
-                    targetoffset = player.CameraTarget + rotatedoffset;
+            Vector3 rotatedoffset = yawaddrot * (startingoffset + Vector3.up * forcedpitch);
+            targetoffset = player.CameraTarget + rotatedoffset;
 
-                    Vector3 next = Vector3.SmoothDamp(transform.position, targetoffset, ref velocityref, smoothspeed);
-                    transform.position = next;
+            Vector3 next = Vector3.SmoothDamp(transform.position, targetoffset, ref velocityref, smoothspeed);
+            transform.position = next;
 
-                    playermovementforward = transform.forward.NoY().normalized;
-                    playermovementright = transform.right.NoY().normalized;
-                    break;
-                }
+            playermovementforward = transform.forward.NoY().normalized;
+            playermovementright = transform.right.NoY().normalized;
         }
     }
 

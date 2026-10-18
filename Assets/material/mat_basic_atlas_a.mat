@@ -63,7 +63,7 @@ Material:
     m_Floats:
     - _Alpha: 1
     - _BandBlend: 1
-    - _BandBlendMax: 1
+    - _BandBlendMax: 0.05
     - _BandBlendMin: 0
     - _BandsCount: 2
     - _BumpScale: 1
@@ -86,6 +86,7 @@ Material:
     - _AmbientColor: {r: 0.2735849, g: 0.2735849, b: 0.2735849, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _SpecularColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
     - _Tint: {r: 1, g: 1, b: 1, a: 1}
     - _TintColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

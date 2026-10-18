@@ -5,6 +5,8 @@ Shader "LD60/CustomToon"
         _MainTex ("Texture", 2D) = "white" {}
         _TintColor ("Tint", Color) = (1, 1, 1, 1)
         _AmbientColor ("Ambient Color", Color) = (0.1, 0.1, 0.1, 1)
+        _SpecularColor ("Specular Color", Color) = (0.8, 0.8, 0.8, 1)
+        _Glossiness("Glossiness", Float) = 16
         _Alpha("Alpha", Range(0, 1)) = 1
         _BandsCount("Bands Count", Range(2, 4)) = 2
         _BandBlendMin("Band Blend (Min)", Range(0, 1)) = 0
@@ -51,9 +53,11 @@ Shader "LD60/CustomToon"
             float4 _MainTex_ST;
             float4 _TintColor;
             float4 _AmbientColor;
+            float4 _SpecularColor;
             fixed _Alpha;
             fixed _BandBlendMin;
             fixed _BandBlendMax;
+            fixed _Glossiness;
             int _BandsCount;
             
             v2f vert (appdata v)
@@ -71,30 +75,39 @@ Shader "LD60/CustomToon"
             fixed4 frag (v2f IN) : SV_Target
             {
                 fixed4 col = tex2D(_MainTex, IN.uv);
+                float3 normal = IN.worldNormal;
                 float ndotl = dot(IN.worldNormal, _WorldSpaceLightPos0);
 
-                // -- bands instead of straight up cel
-                float shade = 0;
-                float step = 1.0 / (float)_BandsCount;
+                // // -- bands instead of straight up cel
+                // float shade = 0;
+                // float step = 1.0 / (float)_BandsCount;
 
-                [unroll(4)]
-                for(int i = 0; i < _BandsCount; ++i)
-                {
-                    if(ndotl <= shade)
-                    {
-                        break;
-                    }
+                // [unroll(4)]
+                // for(int i = 0; i < _BandsCount; ++i)
+                // {
+                //     if(ndotl <= shade)
+                //     {
+                //         break;
+                //     }
 
-                    shade += step;
-                }
+                //     shade += step;
+                // }
 
-                shade = smoothstep(_BandBlendMin, _BandBlendMax, shade);
+                // shade = smoothstep(_BandBlendMin, _BandBlendMax, shade);
+
+                float shade = smoothstep(_BandBlendMin, _BandBlendMax, ndotl);
 
                 // -- shadows and ambient
                 // float shadow = UNITY_SHADOW_ATTENUATION(IN);
                 float ambient = ShadeSH9(float4(IN.worldNormal, 1.0));
 
-                float3 finallight = lerp(ambient + _AmbientColor, _LightColor0.rgb, shade);
+                // -- specular light: Blinn-Phong dot
+                float3 viewDir = normalize(IN.viewDir);
+                float3 halfVec = normalize(_WorldSpaceLightPos0 + viewDir);
+                float ndoth = dot(normal, halfVec);
+                float spec = pow(ndoth  * shade, _Glossiness * _Glossiness);
+
+                float3 finallight = lerp(ambient + _AmbientColor + spec, _LightColor0.rgb, shade);
                 return float4(col.rgb * _TintColor.rgb * finallight, _Alpha);
             }
             ENDCG

@@ -2,11 +2,13 @@ using UnityEngine;
 
 public class PlayerScore : MonoBehaviour
 {
-    private int currentscore = 0;
+    private int currentnotes = 0;
 
-    public void AddScore(int score)
+    public int CurrentNotes => currentnotes;
+
+    public void AddNotes(int score)
     {
-        currentscore += score;
-        currentscore = Mathf.Max(0, currentscore);
+        currentnotes += score;
+        currentnotes = Mathf.Max(0, currentnotes);
     }
 }

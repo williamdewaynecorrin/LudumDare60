@@ -3,14 +3,17 @@ using System.Collections;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
     private const string kMovementAnimState = "Movement";
     private const string kIdleAnimState = "Idle";
     private const string kInAirAnimState = "InAir";
-    private const string kJumpStartAnimState = "JumpStart";
-    private const string kJumpEndAnimState = "JumpEnd";
+    private const string kJumpStartAnimState = "JumpStart"; 
+    private const string kDoubleJumpAnimState = "DoubleJump"; 
+    private const string kJumpEndAnimState = "JumpEnd"; 
+    private const string kBoominAnimState = "Boomin"; 
 
     private const string kMovementSpeedAnimTag = "MovementSpeed";
     private const string kYVelocityAnimTag = "YVelocity";
@@ -29,6 +32,8 @@ public class PlayerController : MonoBehaviour
     private Health health;
     [SerializeField]
     private CharacterController character;
+    [SerializeField]
+    private PlayerScore score;
     [SerializeField]
     private Animator anim;
 
@@ -52,13 +57,30 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private float jumpforce = 1.0f;
     [SerializeField]
+    private float doublejumpmult = 0.66f;
+    [SerializeField]
     private float coyotetimeseconds = 0.1f;
+
+    [Header("Abilities")]
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float boomamount = 0.8f;
+    [SerializeField]
+    private ParticleSystem boomparticles;
 
     [Header("SFX")]
     [SerializeField]
     private AudioClipExt sfxjump;
     [SerializeField]
+    private AudioClipExt sfxdoublejump;
+    [SerializeField]
     private AudioClipExt sfxland;
+    [SerializeField]
+    private AudioClipExt sfxledgefall;
+    [SerializeField]
+    private AudioClipExt sfxstartboom;
+    [SerializeField]
+    private AudioClipExt sfxstopboom;
 
     private float currentspeed = 0f;
     private Vector3 externalvelocity = Vector3.zero;
@@ -66,9 +88,11 @@ public class PlayerController : MonoBehaviour
     private EPlayerState state = EPlayerState.eFree;
     private bool grounded = true;
     private bool jumped = false;
+    private bool doublejumped = false;
     private Coroutine coyotetimethread = null;
     private Vector3 movedir;
     private string animstate = "";
+    private RadioObject currentradio = null;
 
     public bool CanJump => !jumped && (grounded || coyotetimethread != null);
     public Vector3 CameraTarget => transform.position + Vector3.up * character.height * 0.5f;
@@ -79,11 +103,14 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         movedir = transform.forward;
+        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = false;
+        boomparticles.Stop();
     }
 
     void Update()
     {
-        if (state == EPlayerState.eFrozen || state == EPlayerState.eDead)
+        if (state == EPlayerState.eFrozen || state == EPlayerState.eDead || state == EPlayerState.eFallingOffLevel)
             return;
 
         // -- vertical plane movement
@@ -96,6 +123,7 @@ public class PlayerController : MonoBehaviour
             {
                 // -- just landed
                 jumped = false;
+                doublejumped = false;
 
                 if (animstate != kJumpEndAnimState)
                 {
@@ -129,23 +157,30 @@ public class PlayerController : MonoBehaviour
             grounded = false;
         }
 
-        // -- jump check
-        if(grounded && !jumped && Inputs.JumpTriggered())
+        if (state == EPlayerState.eFree)
         {
-            Jump();
+            // -- jump check
+            if (grounded && !jumped && Inputs.JumpTriggered())
+            {
+                Jump();
+            }
+            if (!grounded && !doublejumped && (jumped || coyotetimethread == null) && Inputs.JumpTriggered())
+            {
+                Jump(doublejumpmult, true);
+            }
         }
 
         CollisionFlags gravityflags = character.Move(Vector3.down * currentgravity);
 
         // -- xz plane movement
         Vector2 currentinput = new Vector2(Inputs.HorizontalMove(), Inputs.VerticalMove());
-        if (currentinput == Vector2.zero)
+        if (currentinput == Vector2.zero || state == EPlayerState.eBoomin)
         {
             // -- stop
             float stopvel = 0f;
             currentspeed = Mathf.SmoothDamp(currentspeed, 0f, ref stopvel, stopsmoothing);
 
-            if(animstate != kIdleAnimState && currentspeed <= kSpeedForIdleAnimationThresh)
+            if (state != EPlayerState.eBoomin && animstate != kIdleAnimState && currentspeed <= kSpeedForIdleAnimationThresh && animstate != kInAirAnimState && animstate != kJumpStartAnimState && animstate != kJumpEndAnimState)
             {
                 Extensions.PlayAnimationTransitioned(ref anim, kIdleAnimState, 0.5f, SAnimatorLayer.kBaseLayer, ref animstate);
             }
@@ -155,12 +190,10 @@ public class PlayerController : MonoBehaviour
             Vector3 framemove = playercamera.PlayerMovementForward * currentinput.y + playercamera.PlayerMovementRight * currentinput.x;
             movedir = framemove.normalized;
 
-            framemove *= acceleration * Time.deltaTime;
-
-            currentspeed += framemove.magnitude;
+            currentspeed += acceleration * Time.deltaTime;
             currentspeed = Mathf.Min(currentspeed, maxspeed);
 
-            if(animstate != kMovementAnimState && animstate != kInAirAnimState && animstate != kJumpStartAnimState && animstate != kJumpEndAnimState)
+            if (state != EPlayerState.eBoomin && grounded && animstate != kMovementAnimState && animstate != kInAirAnimState && animstate != kJumpStartAnimState && animstate != kJumpEndAnimState)
             {
                 Extensions.PlayAnimationTransitioned(ref anim, kMovementAnimState, 0.1f, SAnimatorLayer.kBaseLayer, ref animstate);
             }
@@ -174,7 +207,7 @@ public class PlayerController : MonoBehaviour
         float yvelocityratio = Mathf.Clamp01(Mathf.InverseLerp(kYVelocityMinValue, kYVelocityMaxValue, currentgravity));
         anim.SetFloat(kYVelocityAnimTag, yvelocityratio);
 
-        CollisionFlags moveflags = character.Move(transform.forward.NoY().normalized * currentspeed);
+        CollisionFlags moveflags = character.Move(transform.forward.NoY().normalized * currentspeed * Time.deltaTime);
 
         Vector3 rotvel = Vector3.zero;
         Quaternion targetrot = Quaternion.LookRotation(movedir, Vector3.up);
@@ -186,28 +219,106 @@ public class PlayerController : MonoBehaviour
             health.TakeDamage(gameconstants.playerkillplanedamage);
             StartCoroutine(RespawnOffCliffRoutine());
         }
+
+        if(grounded && Inputs.ToggleBoom())
+        {
+            if(state == EPlayerState.eFree)
+            {
+                OnStartBoomin();
+            }
+            else if(state == EPlayerState.eBoomin)
+            {
+                OnStopBoomin();
+            }
+        }
+
+        if(state == EPlayerState.eBoomin && animstate != kBoominAnimState)
+        {
+            Extensions.PlayAnimationTransitioned(ref anim, kBoominAnimState, 0.1f, SAnimatorLayer.kBaseLayer, ref animstate);
+        }
     }
 
-    public void Jump(float mult = 1.0f)
+    private void OnStartBoomin()
     {
-        currentgravity = -jumpforce * mult;
+        state = EPlayerState.eBoomin;
+        boomparticles.Play();
+        AudioManager.Play2D(sfxstopboom);
+        AudioManager.Instance.SetBoomAmount(boomamount);
+
+        if (currentradio != null)
+        {
+            if(currentradio.NoteRequirement <= score.CurrentNotes)
+            {
+                currentradio.RestoreRadio();
+            }
+        }
+    }
+
+    private void OnStopBoomin()
+    {
+        state = EPlayerState.eFree;
+        boomparticles.Stop();
+        AudioManager.Play2D(sfxstartboom);
+        AudioManager.Instance.SetBoomAmount(0f);
+    }
+
+    public void SetCurrentRadio(RadioObject radio)
+    {
+        currentradio = radio;
+    }
+
+    public void Jump(float mult = 1.0f, bool isdoublejump = false)
+    {
         jumped = true;
 
         if(coyotetimethread != null)
             StopCoroutine(coyotetimethread);
 
-        if (animstate != kJumpStartAnimState)
-        {
-            Extensions.PlayAnimationTransitioned(ref anim, kJumpStartAnimState, 0.1f, SAnimatorLayer.kBaseLayer, ref animstate);
-        }
-
         coyotetimethread = null;
-        AudioManager.Play2D(sfxjump);
+
+        if(isdoublejump)
+        {
+            if (currentgravity >= 0f)
+                currentgravity = -jumpforce * mult;
+            else
+                currentgravity = -jumpforce;
+
+            if (animstate != kDoubleJumpAnimState)
+            {
+                Extensions.PlayAnimationTransitioned(ref anim, kDoubleJumpAnimState, 0.1f, SAnimatorLayer.kBaseLayer, ref animstate);
+            }
+
+            doublejumped = true;
+            AudioManager.Play2D(sfxdoublejump);
+        }
+        else
+        {
+            currentgravity = -jumpforce * mult;
+
+            if (animstate != kJumpStartAnimState)
+            {
+                Extensions.PlayAnimationTransitioned(ref anim, kJumpStartAnimState, 0.1f, SAnimatorLayer.kBaseLayer, ref animstate);
+            }
+
+            AudioManager.Play2D(sfxjump);
+        }
     }
 
     private IEnumerator RespawnOffCliffRoutine()
     {
+        AudioManager.Play2D(sfxledgefall);
         yield return new WaitForSeconds(gameconstants.playerfallrespawntime);
+
+        currentgravity = 0f;
+        state = health.IsDead ? EPlayerState.eDead : EPlayerState.eFree;
+        if (PlayerCheckpoint.gLastTouched != null)
+        {
+            Teleport(PlayerCheckpoint.gLastTouched.transform.position, PlayerCheckpoint.gLastTouched.transform.forward);
+        }
+        else
+        {
+            Teleport(Vector3.zero, Vector3.forward);
+        }
     }
     
     private IEnumerator CoyoteTimeRoutine()
@@ -216,6 +327,14 @@ public class PlayerController : MonoBehaviour
 
         coyotetimethread = null;
         yield break;
+    }
+
+    public void Teleport(Vector3 pos, Vector3 forward)
+    {
+        character.enabled = false;
+        transform.localPosition = pos;
+        transform.localRotation = Quaternion.LookRotation(forward, Vector3.up);
+        character.enabled = true;
     }
 
     public void OnDeath()
@@ -262,7 +381,7 @@ public class PlayerController : MonoBehaviour
 public enum EPlayerState
 {
     eFree = 0,
-
+    eBoomin = 10,
     eFallingOffLevel = 50,
     eFrozen = 100,
     eDead = 200

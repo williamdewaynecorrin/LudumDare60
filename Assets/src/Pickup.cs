@@ -11,7 +11,7 @@ public class Pickup : MonoBehaviour
     {
         if(other.TryGetComponent<PlayerScore>(out PlayerScore player))
         {
-            player.AddScore(score);
+            player.AddNotes(score);
 
             AudioManager.Play2D(sfxcollect);
             GameObject.Destroy(this.gameObject);

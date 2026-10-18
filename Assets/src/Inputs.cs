@@ -30,4 +30,14 @@ public static class Inputs
     {
         return Input.mousePositionDelta.x;
     }
+
+    public static float RotateCameraPitch()
+    {
+        return -Input.mousePositionDelta.y;
+    }
+
+    public static bool ToggleBoom()
+    {
+        return Input.GetMouseButtonDown(0);
+    }
 }

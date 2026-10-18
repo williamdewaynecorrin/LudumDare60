@@ -42,6 +42,19 @@ public static class Extensions
     {
         return string.Format("{0}.{1}", layername, statename);
     }
+
+    // -- text
+    public const string kGlyphIDRedX = "<sprite name=\"tmp_sprite_x\">"; 
+    public const string kGlyphIDGreenCheck = "<sprite name=\"tmp_sprite_check\">";
+    public const string kGlyphIDNote = "<sprite name=\"tmp_sprite_note\">"; 
+
+    public static string ColoredString(string str, Color c)
+    {
+        string hex = UnityEngine.ColorUtility.ToHtmlStringRGBA(c);
+        string rich = string.Format("<color=#{0}>{1}</color>", hex, str);
+
+        return rich;
+    }
 }
 
 [System.Serializable]
