@@ -47,12 +47,12 @@ public class RadioObject : MonoBehaviour
         string radiodesc = "";
         if (isrestored)
         {
-            radiostr = Extensions.ColoredString("RADIO - FIXED", Color.green);
+            radiostr = Extensions.ColoredString(string.Format("{0} - FIXED", inspect.Header), Color.green);
             radiodesc = string.Format("{0}A clean, fixed-up radio from the 1970s", Extensions.kGlyphIDGreenCheck);
         }
         else
         {
-            radiostr = Extensions.ColoredString("RADIO - DEAD", Color.red);
+            radiostr = Extensions.ColoredString(string.Format("{0} - DEAD", inspect.Header), Color.red);
             radiodesc = "A broken-down, fixed-up radio from the 1970s";
             radiodesc = string.Format("{0}Requires {1}{2} to repair", Extensions.kGlyphIDRedX, Extensions.kGlyphIDNote, noterequirement);
         }

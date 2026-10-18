@@ -19,6 +19,7 @@ public class AudioManager : MonoBehaviour
 
     private float targetboomamount = 0f;
     private float currentboomamount = 0;
+    private PlayerController player;
 
     void Awake()
     {
@@ -30,6 +31,13 @@ public class AudioManager : MonoBehaviour
         instance = this;
     }
 
+    void Start()
+    {
+        player = GameObject.FindFirstObjectByType<PlayerController>();
+        if (player == null)
+            Debug.LogErrorFormat("AudioManager couldn't find a PlayerController object in the scene!");
+    }
+
     void FixedUpdate()
     {
         currentboomamount = Mathf.Lerp(currentboomamount, targetboomamount, boomlerp);
@@ -37,6 +45,9 @@ public class AudioManager : MonoBehaviour
         float mainvol = 1.0f - currentboomamount;
         musicmain.volume = mainvol *  gMusicVolumeMult;
         musicboom.volume = currentboomamount * gMusicVolumeMult;
+
+        if(player != null)
+            musicboom.transform.position = player.transform.position;
     }
 
     public void SetBoomAmount(float boomamt)

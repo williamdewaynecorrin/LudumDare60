@@ -11,18 +11,24 @@ Shader "LD60/CustomToon"
         _BandsCount("Bands Count", Range(2, 4)) = 2
         _BandBlendMin("Band Blend (Min)", Range(0, 1)) = 0
         _BandBlendMax("Band Blend (Max)", Range(0, 1)) = 0.01
+
+        _RimColor ("Rim Color", Color) = (0.8, 0.8, 0.8, 1)
+        _RimThreshold("Rim Thresh", Range(0, 1)) = 0
+        _RimAmount("Rim Amount", Range(0, 1)) = 0
     }
     SubShader
     {
-        Tags 
-        { 
-            "RenderType"="ForwardBase" 
-            "PassFlags"="OnlyDirectional" 
-        }
+        Tags { "RenderType" = "Opaque" }
         LOD 100
 
         Pass
         {
+            Tags 
+            { 
+                "LightMode"="ForwardBase" 
+                "PassFlags"="OnlyDirectional" 
+            }
+
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -46,7 +52,7 @@ Shader "LD60/CustomToon"
                 float2 uv : TEXCOORD0;
                 float3 viewDir : TEXCOORD1;
 
-                UNITY_SHADOW_COORDS(2)
+                SHADOW_COORDS(2)
             };
 
             sampler2D _MainTex;
@@ -58,7 +64,10 @@ Shader "LD60/CustomToon"
             fixed _BandBlendMin;
             fixed _BandBlendMax;
             fixed _Glossiness;
-            int _BandsCount;
+
+            float4 _RimColor;
+            fixed _RimThreshold;
+            fixed _RimAmount;
             
             v2f vert (appdata v)
             {
@@ -68,37 +77,18 @@ Shader "LD60/CustomToon"
                 o.worldNormal = UnityObjectToWorldNormal(v.normal);
                 o.viewDir = WorldSpaceViewDir(v.vertex);
 
-                UNITY_TRANSFER_SHADOW(o, o.pos);
+                TRANSFER_SHADOW(o);
                 return o;
             }
             
             fixed4 frag (v2f IN) : SV_Target
             {
                 fixed4 col = tex2D(_MainTex, IN.uv);
-                float3 normal = IN.worldNormal;
+                float3 normal = normalize(IN.worldNormal);
                 float ndotl = dot(IN.worldNormal, _WorldSpaceLightPos0);
 
-                // // -- bands instead of straight up cel
-                // float shade = 0;
-                // float step = 1.0 / (float)_BandsCount;
-
-                // [unroll(4)]
-                // for(int i = 0; i < _BandsCount; ++i)
-                // {
-                //     if(ndotl <= shade)
-                //     {
-                //         break;
-                //     }
-
-                //     shade += step;
-                // }
-
-                // shade = smoothstep(_BandBlendMin, _BandBlendMax, shade);
-
-                float shade = smoothstep(_BandBlendMin, _BandBlendMax, ndotl);
-
-                // -- shadows and ambient
-                // float shadow = UNITY_SHADOW_ATTENUATION(IN);
+                float shadow = SHADOW_ATTENUATION(IN);
+                float shade = smoothstep(_BandBlendMin, _BandBlendMax, ndotl * shadow);
                 float ambient = ShadeSH9(float4(IN.worldNormal, 1.0));
 
                 // -- specular light: Blinn-Phong dot
@@ -107,7 +97,12 @@ Shader "LD60/CustomToon"
                 float ndoth = dot(normal, halfVec);
                 float spec = pow(ndoth  * shade, _Glossiness * _Glossiness);
 
-                float3 finallight = lerp(ambient + _AmbientColor + spec, _LightColor0.rgb, shade);
+                float rimdot = 1 - dot(viewDir, normal);
+                float rimpow = rimdot * pow(ndotl, _RimThreshold);
+                rimpow = smoothstep(_RimAmount - 0.01, _RimAmount + 0.01, rimpow);
+                float3 rim = rimpow * _RimColor;
+
+                float3 finallight = lerp(ambient + _AmbientColor + spec + rim, _LightColor0.rgb, shade);
                 return float4(col.rgb * _TintColor.rgb * finallight, _Alpha);
             }
             ENDCG

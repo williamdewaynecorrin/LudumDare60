@@ -47,6 +47,13 @@ public static class Extensions
     public const string kGlyphIDRedX = "<sprite name=\"tmp_sprite_x\">"; 
     public const string kGlyphIDGreenCheck = "<sprite name=\"tmp_sprite_check\">";
     public const string kGlyphIDNote = "<sprite name=\"tmp_sprite_note\">"; 
+    public const string kGlyphIDLeftClick = "<sprite name=\"tmp_sprite_lclick\">"; 
+    public const string kGlyphIDKeyEmpty = "<sprite name=\"tmp_sprite_key_empty\">";
+    public const string kGlyphIDNoteKeyW = "<sprite name=\"tmp_sprite_key_w\">"; 
+    public const string kGlyphIDNoteKeyA = "<sprite name=\"tmp_sprite_key_a\">"; 
+    public const string kGlyphIDNoteKeyS = "<sprite name=\"tmp_sprite_key_s\">"; 
+    public const string kGlyphIDNoteKeyD = "<sprite name=\"tmp_sprite_key_d\">"; 
+    public const string kGlyphIDNoteKeySpace = "<sprite name=\"tmp_sprite_key_space\">"; 
 
     public static string ColoredString(string str, Color c)
     {

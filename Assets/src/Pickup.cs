@@ -13,7 +13,7 @@ public class Pickup : MonoBehaviour
         {
             player.AddNotes(score);
 
-            AudioManager.Play2D(sfxcollect);
+            AudioManager.Play2D(sfxcollect, 1.0f, player.PitchTracker);
             GameObject.Destroy(this.gameObject);
         }
     }

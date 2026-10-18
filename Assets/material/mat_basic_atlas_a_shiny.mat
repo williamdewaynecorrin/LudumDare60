@@ -25,9 +25,9 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _BandBlendMax: 0
+    - _BandBlendMax: 0.4
     - _BandsCount: 2
-    - _Glossiness: 1
+    - _Glossiness: 32
     m_Colors:
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

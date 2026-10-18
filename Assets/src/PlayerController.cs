@@ -14,20 +14,23 @@ public class PlayerController : MonoBehaviour
     private const string kDoubleJumpAnimState = "DoubleJump"; 
     private const string kJumpEndAnimState = "JumpEnd"; 
     private const string kBoominAnimState = "Boomin"; 
+    private const string kSitAnimState = "Sitting"; 
 
     private const string kMovementSpeedAnimTag = "MovementSpeed";
     private const string kYVelocityAnimTag = "YVelocity";
     private const float kSpeedForIdleAnimationThresh = 0.002f;
     private const float kKillPlaneHeight = -20f;
 
-    private const float kYVelocityMinValue = 0.06f;
-    private const float kYVelocityMaxValue = -0.04f;
+    private const float kYVelocityMinValue = 16f;
+    private const float kYVelocityMaxValue = -12f;
 
     [Header("Base Data")]
     [SerializeField]
     private SOGameConstants gameconstants;
     [SerializeField]
     private PlayerCamera playercamera;
+    [SerializeField]
+    private UIHUD uihud;
     [SerializeField]
     private Health health;
     [SerializeField]
@@ -38,6 +41,8 @@ public class PlayerController : MonoBehaviour
     private Animator anim;
 
     [Header("Movement + Turning")]
+    [SerializeField]
+    private EPlayerState state = EPlayerState.eFree;
     [SerializeField]
     private float acceleration = 1.0f;
     [SerializeField]
@@ -85,7 +90,6 @@ public class PlayerController : MonoBehaviour
     private float currentspeed = 0f;
     private Vector3 externalvelocity = Vector3.zero;
     private float currentgravity = 0f;
-    private EPlayerState state = EPlayerState.eFree;
     private bool grounded = true;
     private bool jumped = false;
     private bool doublejumped = false;
@@ -93,7 +97,11 @@ public class PlayerController : MonoBehaviour
     private Vector3 movedir;
     private string animstate = "";
     private RadioObject currentradio = null;
+    private MovingPlatform currentmovingplatform = null;
+    private bool hascachedmovingplatformvelocity = false;
+    private Vector3 cachedmovingplatformvelocity;
 
+    public Health Health => health;
     public bool CanJump => !jumped && (grounded || coyotetimethread != null);
     public Vector3 CameraTarget => transform.position + Vector3.up * character.height * 0.5f;
     public float CurrentSpeed => currentspeed;
@@ -103,17 +111,30 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         movedir = transform.forward;
-        Cursor.lockState = CursorLockMode.Confined;
-        Cursor.visible = false;
         boomparticles.Stop();
+
+        if(state == EPlayerState.eFrozen)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            Extensions.PlayAnimationTransitioned(ref anim, kSitAnimState, 0f, SAnimatorLayer.kBaseLayer, ref animstate);
+            boomparticles.Play();
+            boomparticles.transform.localScale *= 0.3f;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Confined;
+            Cursor.visible = false;
+        }
     }
 
     void Update()
     {
-        if (state == EPlayerState.eFrozen || state == EPlayerState.eDead || state == EPlayerState.eFallingOffLevel)
+        if (state == EPlayerState.eFrozen || state == EPlayerState.eDead)
             return;
 
         // -- vertical plane movement
+        currentmovingplatform = null;
         GetCapsuleData(out Vector3 p1, out Vector3 p2, out float grounddist);
         if (currentgravity >= 0f && Physics.CapsuleCast(p1, p2, character.radius, Vector3.down, out RaycastHit groundhit, grounddist, groundmask, QueryTriggerInteraction.Ignore))
         {
@@ -131,6 +152,19 @@ public class PlayerController : MonoBehaviour
                 }
 
                 AudioManager.Play2D(sfxland);
+            }
+
+            if (groundhit.collider.TryGetComponent<MovingPlatform>(out MovingPlatform platform))
+            {
+                currentmovingplatform = platform;
+                cachedmovingplatformvelocity = currentmovingplatform.FixedVelocity;
+                hascachedmovingplatformvelocity = true;
+            }
+            else
+            {
+                cachedmovingplatformvelocity = Vector3.zero;
+                currentmovingplatform = null;
+                hascachedmovingplatformvelocity = false;
             }
 
             character.Move(Vector3.down * groundhit.distance);
@@ -170,7 +204,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        CollisionFlags gravityflags = character.Move(Vector3.down * currentgravity);
+        CollisionFlags gravityflags = character.Move(Vector3.down * currentgravity * Time.deltaTime);
 
         // -- xz plane movement
         Vector2 currentinput = new Vector2(Inputs.HorizontalMove(), Inputs.VerticalMove());
@@ -180,7 +214,7 @@ public class PlayerController : MonoBehaviour
             float stopvel = 0f;
             currentspeed = Mathf.SmoothDamp(currentspeed, 0f, ref stopvel, stopsmoothing);
 
-            if (state != EPlayerState.eBoomin && animstate != kIdleAnimState && currentspeed <= kSpeedForIdleAnimationThresh && animstate != kInAirAnimState && animstate != kJumpStartAnimState && animstate != kJumpEndAnimState)
+            if (state != EPlayerState.eBoomin && grounded && animstate != kIdleAnimState && currentspeed <= kSpeedForIdleAnimationThresh && animstate != kInAirAnimState && animstate != kJumpStartAnimState && animstate != kJumpEndAnimState)
             {
                 Extensions.PlayAnimationTransitioned(ref anim, kIdleAnimState, 0.5f, SAnimatorLayer.kBaseLayer, ref animstate);
             }
@@ -213,37 +247,51 @@ public class PlayerController : MonoBehaviour
         Quaternion targetrot = Quaternion.LookRotation(movedir, Vector3.up);
         transform.localRotation = Extensions.SmoothDampQuat(transform.localRotation, targetrot, ref rotvel, turnsmoothing);
 
-        if(transform.position.y < kKillPlaneHeight)
+        if(transform.position.y < kKillPlaneHeight && state != EPlayerState.eFallingOffLevel)
         {
             state = EPlayerState.eFallingOffLevel;
             health.TakeDamage(gameconstants.playerkillplanedamage);
+            hascachedmovingplatformvelocity = false;
             StartCoroutine(RespawnOffCliffRoutine());
         }
 
-        if(grounded && Inputs.ToggleBoom())
+        if(grounded && state != EPlayerState.eFallingOffLevel)
         {
-            if(state == EPlayerState.eFree)
+            if(state == EPlayerState.eFree && Inputs.ToggleBoom())
             {
                 OnStartBoomin();
             }
-            else if(state == EPlayerState.eBoomin)
+            else if(state == EPlayerState.eBoomin && (Inputs.ToggleBoom() || Inputs.MovementTriggered()))
             {
                 OnStopBoomin();
             }
         }
+    }
 
-        if(state == EPlayerState.eBoomin && animstate != kBoominAnimState)
+    void FixedUpdate()
+    {
+        if(state == EPlayerState.eFree || state == EPlayerState.eBoomin)
         {
-            Extensions.PlayAnimationTransitioned(ref anim, kBoominAnimState, 0.1f, SAnimatorLayer.kBaseLayer, ref animstate);
+            if (currentmovingplatform != null)
+            {
+                CollisionFlags moveflags = character.Move(currentmovingplatform.FixedVelocity);
+            }
+            else if (hascachedmovingplatformvelocity)
+            {
+                CollisionFlags moveflags = character.Move(cachedmovingplatformvelocity);
+            }
         }
     }
 
     private void OnStartBoomin()
     {
         state = EPlayerState.eBoomin;
+        uihud.SetOn();
         boomparticles.Play();
         AudioManager.Play2D(sfxstopboom);
         AudioManager.Instance.SetBoomAmount(boomamount);
+
+        Extensions.PlayAnimationTransitioned(ref anim, kBoominAnimState, 0.1f, SAnimatorLayer.kBaseLayer, ref animstate);
 
         if (currentradio != null)
         {
@@ -257,9 +305,12 @@ public class PlayerController : MonoBehaviour
     private void OnStopBoomin()
     {
         state = EPlayerState.eFree;
+        uihud.SetOff();
         boomparticles.Stop();
         AudioManager.Play2D(sfxstartboom);
         AudioManager.Instance.SetBoomAmount(0f);
+
+        Extensions.PlayAnimationTransitioned(ref anim, kIdleAnimState, 0.1f, SAnimatorLayer.kBaseLayer, ref animstate);
     }
 
     public void SetCurrentRadio(RadioObject radio)
@@ -267,7 +318,7 @@ public class PlayerController : MonoBehaviour
         currentradio = radio;
     }
 
-    public void Jump(float mult = 1.0f, bool isdoublejump = false)
+    public void Jump(float mult = 1.0f, bool isdoublejump = false, bool playsfx = true)
     {
         jumped = true;
 
@@ -289,7 +340,9 @@ public class PlayerController : MonoBehaviour
             }
 
             doublejumped = true;
-            AudioManager.Play2D(sfxdoublejump);
+
+            if(playsfx)
+                AudioManager.Play2D(sfxdoublejump);
         }
         else
         {
@@ -300,8 +353,15 @@ public class PlayerController : MonoBehaviour
                 Extensions.PlayAnimationTransitioned(ref anim, kJumpStartAnimState, 0.1f, SAnimatorLayer.kBaseLayer, ref animstate);
             }
 
-            AudioManager.Play2D(sfxjump);
+            if(playsfx)
+                AudioManager.Play2D(sfxjump);
         }
+    }
+
+    public void JumpExternal(float mult)
+    {
+        Jump(mult, false, false);
+        doublejumped = false;
     }
 
     private IEnumerator RespawnOffCliffRoutine()
@@ -346,7 +406,7 @@ public class PlayerController : MonoBehaviour
     {
         p1 = transform.position + character.center - Vector3.up * (character.height * 0.5f - character.radius);
         p2 = transform.position + character.center + Vector3.up * (character.height * 0.5f - character.radius);
-        grounddist = Mathf.Max(mingroundcastdist, currentgravity);
+        grounddist = Mathf.Max(mingroundcastdist, currentgravity * Time.deltaTime);
     }
 
     void OnDrawGizmos()

@@ -4959,13 +4959,13 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 1.5
+  m_Height: 1.35
   m_Radius: 0.5
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0.75, z: 0}
+  m_Center: {x: 0, y: 0.675, z: 0}
 --- !u!136 &8576955087803796861
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -4986,9 +4986,9 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5
-  m_Height: 1.5
+  m_Height: 1.35
   m_Direction: 1
-  m_Center: {x: 0, y: 0.75, z: 0}
+  m_Center: {x: 0, y: 0.675, z: 0}
 --- !u!114 &5988756556946456871
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5003,6 +5003,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   gameconstants: {fileID: 11400000, guid: 382a8c3920ac60042ae2f87904262573, type: 2}
   playercamera: {fileID: 0}
+  uihud: {fileID: 0}
   health: {fileID: 6265152335749716148}
   character: {fileID: 4622830869878237199}
   score: {fileID: 2631175417945713485}
@@ -5015,11 +5016,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 320
   mingroundcastdist: 0.1
-  gravityforce: 0.1
-  jumpforce: 0.05
+  gravityforce: 37.5
+  jumpforce: 16
   doublejumpmult: 0.66
   coyotetimeseconds: 0.1
-  boomamount: 0.75
+  boomamount: 0.95
   boomparticles: {fileID: 3714469373539719595}
   sfxjump:
     clip: {fileID: 8300000, guid: 4f51dd42fbb51b04eb4c3cfe7cc9dfce, type: 3}
@@ -5070,6 +5071,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxhealth: 100
+  attachedfill: {fileID: 0}
   ondeath:
     m_PersistentCalls:
       m_Calls:
@@ -5097,6 +5099,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b6b733c231482e4b9b3ce5b09da14df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerScore
+  collectpitchtime: 3
+  collectpitchincrease: 0.1
+  uihud: {fileID: 0}
 --- !u!114 &4440849985751525753
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5188,7 +5193,7 @@ PrefabInstance:
     - target: {fileID: 8417361359673230750, guid: 33291f071a7a1034580c712b47755202, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 80bb90f186bf1a34b922ca28d957006a, type: 2}
+      objectReference: {fileID: 2100000, guid: ec8e35f564ab328499019423d8f1e53f, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:

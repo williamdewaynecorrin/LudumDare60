@@ -5,4 +5,6 @@ public class SOGameConstants : ScriptableObject
 {
     public int playerkillplanedamage = 10;
     public float playerfallrespawntime = 3.0f;
+    public string mainmenulevel = "level_main_menu";
+    public string gamelevel = "level_1";
 }

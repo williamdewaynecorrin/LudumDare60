@@ -9,6 +9,8 @@ public class Inspectable : MonoBehaviour
     [SerializeField]
     private string desc;
 
+    public string Header => header;
+    public string Description => desc;
     public InspectableCanvas Canvas => inspectable;
 
     void Awake()
