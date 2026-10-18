@@ -14,6 +14,10 @@ public class UIHUD : MonoBehaviour
     [SerializeField]
     private TMP_Text scoretext;
     [SerializeField]
+    private GameObject deathobject;
+    [SerializeField]
+    private GameObject winobject;
+    [SerializeField]
     private Transform radiosparent;
     [SerializeField]
     private GameObject radioprefab;
@@ -21,6 +25,10 @@ public class UIHUD : MonoBehaviour
     private TMP_Text onofftext;
     [SerializeField]
     private TutorialEntry[] tutorialentries;
+    [SerializeField]
+    private AudioClipExt sfxwin;
+    [SerializeField]
+    private AudioClipExt sfxlose;
 
     private Dictionary<int, Image> radiodict = new Dictionary<int, Image>();
     private int tutorialidx = 0;
@@ -30,6 +38,8 @@ public class UIHUD : MonoBehaviour
     void Start()
     {
         SetOff();
+        deathobject.SetActive(false);
+        winobject.SetActive(false);
 
         tutorialentries[0].completioncheck += ()=> Inputs.RotateCameraPitch() + Inputs.RotateCameraYAW() != 0f;
         tutorialentries[1].completioncheck += () => Inputs.HorizontalMove() + Inputs.VerticalMove() != 0f;
@@ -66,6 +76,23 @@ public class UIHUD : MonoBehaviour
         tutorialentries[tutorialidx].Show();
     }
 
+    public void SetDead()
+    {
+        if (winobject.activeInHierarchy)
+            return;
+
+        deathobject.SetActive(true);
+        AudioManager.Play2D(sfxlose);
+    }
+
+    public void SetWin()
+    {
+        if (deathobject.activeInHierarchy)
+            return;
+
+        winobject.SetActive(true);
+    }
+
     public void NoteCollected()
     {
         if (tutorialidx >= 2)
@@ -95,6 +122,28 @@ public class UIHUD : MonoBehaviour
 
         anyradiorestored = true;
         radiodict[id].color = Color.white;
+
+        CheckGameWin();
+    }
+
+    private void CheckGameWin()
+    {
+        bool success = true;
+        foreach(int key in radiodict.Keys)
+        {
+            if (radiodict[key].color == Color.black)
+            {
+                success = false;
+                break;
+            }
+        }
+
+        if(success)
+        {
+            SetWin();
+            player.SetWin();
+            AudioManager.Play2D(sfxwin);
+        }
     }
 
     public void SetOff()

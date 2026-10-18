@@ -4918,6 +4918,7 @@ GameObject:
   - component: {fileID: 6265152335749716148}
   - component: {fileID: 2631175417945713485}
   - component: {fileID: 4440849985751525753}
+  - component: {fileID: 104883169100319190}
   m_Layer: 7
   m_Name: prefab_player
   m_TagString: Untagged
@@ -5004,14 +5005,16 @@ MonoBehaviour:
   gameconstants: {fileID: 11400000, guid: 382a8c3920ac60042ae2f87904262573, type: 2}
   playercamera: {fileID: 0}
   uihud: {fileID: 0}
+  postprocess: {fileID: 104883169100319190}
   health: {fileID: 6265152335749716148}
   character: {fileID: 4622830869878237199}
   score: {fileID: 2631175417945713485}
   anim: {fileID: 7565307968877195310}
+  state: 0
   acceleration: 30
   maxspeed: 8
-  stopsmoothing: 0.0425
-  turnsmoothing: 0.025
+  stopsmoothing: 0.03
+  turnsmoothing: 0.02
   groundmask:
     serializedVersion: 2
     m_Bits: 320
@@ -5072,6 +5075,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxhealth: 100
   attachedfill: {fileID: 0}
+  hasdamagecooldown: 1
+  damagecooldowntime: 0.5
   ondeath:
     m_PersistentCalls:
       m_Calls:
@@ -5114,6 +5119,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0dba1e8740fa9e94a895d87928e9c04f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+--- !u!114 &104883169100319190
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8858465783973244168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d22dd72a31890439c477a57205a8de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  postprof: {fileID: 11400000, guid: 052bc642abbc78647a7b9f2fcd365b61, type: 2}
+  vigenttelerp: 0.15
 --- !u!1001 &6099685390027396629
 PrefabInstance:
   m_ObjectHideFlags: 0

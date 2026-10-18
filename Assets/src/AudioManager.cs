@@ -5,9 +5,9 @@ public class AudioManager : MonoBehaviour
     public static AudioManager Instance => instance;
     private static AudioManager instance = null;
 
-    public static float gMasterVolumeMult = 1.0f;
-    public static float gSFXVolumeMult = 1.0f * gMasterVolumeMult;
-    public static float gMusicVolumeMult = 1.0f * gMasterVolumeMult;
+    public static float gMasterVolumeMult = 0.6f;
+    public static float gSFXVolumeMult => 1.0f * gMasterVolumeMult;
+    public static float gMusicVolumeMult => 1.0f * gMasterVolumeMult;
 
     [SerializeField]
     private AudioSource musicmain;

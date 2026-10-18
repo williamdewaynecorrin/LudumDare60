@@ -4,6 +4,7 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -31,6 +32,8 @@ public class PlayerController : MonoBehaviour
     private PlayerCamera playercamera;
     [SerializeField]
     private UIHUD uihud;
+    [SerializeField]
+    private PlayerPostProcess postprocess;
     [SerializeField]
     private Health health;
     [SerializeField]
@@ -127,6 +130,14 @@ public class PlayerController : MonoBehaviour
         {
             Cursor.lockState = CursorLockMode.Confined;
             Cursor.visible = false;
+        }
+    }
+
+    void Start()
+    {
+        if(state == EPlayerState.eFrozen)
+        {
+           AudioManager.Instance.SetBoomAmount(1f);
         }
     }
 
@@ -423,7 +434,24 @@ public class PlayerController : MonoBehaviour
 
     public void OnDeath()
     {
+        state = EPlayerState.eDead;
+        uihud.SetDead();
+        StartCoroutine(BackToMenu(2.0f));
+    }
 
+    public void SetWin()
+    {
+        state = EPlayerState.eFrozen;
+        StartCoroutine(BackToMenu(3.0f));
+        score.RecordScoreAsFinished();
+    }
+
+    private IEnumerator BackToMenu(float preloadwait)
+    {
+        yield return new WaitForSeconds(preloadwait);
+        postprocess.SetVignetteOn();
+        yield return new WaitForSeconds(gameconstants.deathmenuload);
+        SceneManager.LoadScene(gameconstants.mainmenulevel);
     }
 
     private void GetCapsuleData(out Vector3 p1, out Vector3 p2, out float grounddist)
@@ -450,6 +478,9 @@ public class PlayerController : MonoBehaviour
 
     void OnGUI()
     {
+        if (!Application.isEditor)
+            return;
+
         const float debuglineheight = 25f;
         Rect debugrect = new Rect(5, 5, 250f, debuglineheight);
 

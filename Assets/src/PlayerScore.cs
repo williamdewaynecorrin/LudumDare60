@@ -2,6 +2,10 @@ using UnityEngine;
 
 public class PlayerScore : MonoBehaviour
 {
+    public const string kHighScoreKey = "high_score";
+    private static int gBestScore = 0;
+    public static int BestScore => gBestScore;
+
     [SerializeField]
     private float collectpitchtime = 3f;
     [SerializeField]
@@ -33,6 +37,16 @@ public class PlayerScore : MonoBehaviour
                 haspitchstreak = false;
                 currentpitchincrease = 1f;
             }
+        }
+    }
+
+    public void RecordScoreAsFinished()
+    {
+        if (currentnotes > gBestScore)
+        {
+            gBestScore = currentnotes;
+            PlayerPrefs.SetInt(kHighScoreKey, gBestScore);
+            PlayerPrefs.Save();
         }
     }
 

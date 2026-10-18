@@ -48,7 +48,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
   musicmain: {fileID: 150508128115629950}
   musicboom: {fileID: 5978500790067325365}
-  boomlerp: 0.0325
+  boomlerp: 0.08
 --- !u!82 &150508128115629950
 AudioSource:
   m_ObjectHideFlags: 0

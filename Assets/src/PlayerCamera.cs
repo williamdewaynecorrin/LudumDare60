@@ -77,7 +77,7 @@ public class PlayerCamera : MonoBehaviour
         Quaternion yawaddrot = Quaternion.Euler(0f, forcedyaw, 0f);
 
         // -- position
-        if (player.State == EPlayerState.eFree || player.State == EPlayerState.eFallingOffLevel || player.State == EPlayerState.eBoomin)
+        if (player.State == EPlayerState.eFree || player.State == EPlayerState.eBoomin)
         {
             Vector3 rotatedoffset = yawaddrot * (startingoffset + Vector3.up * forcedpitch);
             targetoffset = player.CameraTarget + rotatedoffset;
@@ -92,6 +92,9 @@ public class PlayerCamera : MonoBehaviour
 
     void OnGUI()
     {
+        if (!Application.isEditor)
+            return;
+
         const float debuglineheight = 25f;
         Rect debugrect = new Rect(5, 400f, 250f, debuglineheight);
 

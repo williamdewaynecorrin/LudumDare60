@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -11,9 +12,13 @@ public class UIMainMenu : MonoBehaviour
     [SerializeField]
     private Image logo;
     [SerializeField]
+    private TMP_Text highscore;
+    [SerializeField]
     private Button buttonplay;
     [SerializeField]
     private Button buttonexit;
+    [SerializeField]
+    private Slider volume;
     [SerializeField]
     private AudioClipExt sfxclick;
 
@@ -21,6 +26,12 @@ public class UIMainMenu : MonoBehaviour
     {
         buttonplay.onClick.AddListener(OnPlayClicked);
         buttonexit.onClick.AddListener(OnExitClicked);
+
+        volume.value = AudioManager.gMasterVolumeMult;
+        volume.onValueChanged.AddListener(OnSliderVolumeChanged);
+
+        int displayscore = PlayerPrefs.HasKey(PlayerScore.kHighScoreKey) ? PlayerPrefs.GetInt(PlayerScore.kHighScoreKey) : PlayerScore.BestScore;
+        highscore.text = string.Format("BEST: {0}{1}", Extensions.kGlyphIDNote, displayscore);
     }
 
     private void OnPlayClicked()
@@ -33,5 +44,10 @@ public class UIMainMenu : MonoBehaviour
     {
         AudioManager.Play2D(sfxclick);
         Application.Quit();
+    }
+
+    private void OnSliderVolumeChanged(float ratio)
+    {
+        AudioManager.gMasterVolumeMult = Mathf.Clamp01(ratio);
     }
 }

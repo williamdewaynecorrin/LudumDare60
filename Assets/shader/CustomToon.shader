@@ -3,7 +3,10 @@ Shader "LD60/CustomToon"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _EmissionTex ("Emission Tex", 2D) = "white" {}
         _TintColor ("Tint", Color) = (1, 1, 1, 1)
+        [HDR]
+        _EmissionColor("Emission Color", Color) = (1, 1, 1, 1)
         _AmbientColor ("Ambient Color", Color) = (0.1, 0.1, 0.1, 1)
         _SpecularColor ("Specular Color", Color) = (0.8, 0.8, 0.8, 1)
         _Glossiness("Glossiness", Float) = 16
@@ -56,8 +59,10 @@ Shader "LD60/CustomToon"
             };
 
             sampler2D _MainTex;
+            sampler2D _EmissionTex;
             float4 _MainTex_ST;
             float4 _TintColor;
+            float4 _EmissionColor;
             float4 _AmbientColor;
             float4 _SpecularColor;
             fixed _Alpha;
@@ -84,6 +89,7 @@ Shader "LD60/CustomToon"
             fixed4 frag (v2f IN) : SV_Target
             {
                 fixed4 col = tex2D(_MainTex, IN.uv);
+                fixed4 emi = tex2D(_EmissionTex, IN.uv) * _EmissionColor;
                 float3 normal = normalize(IN.worldNormal);
                 float ndotl = dot(IN.worldNormal, _WorldSpaceLightPos0);
 
@@ -103,7 +109,7 @@ Shader "LD60/CustomToon"
                 float3 rim = rimpow * _RimColor;
 
                 float3 finallight = lerp(ambient + _AmbientColor + spec + rim, _LightColor0.rgb, shade);
-                return float4(col.rgb * _TintColor.rgb * finallight, _Alpha);
+                return float4(col.rgb * _TintColor.rgb * finallight + emi.rgb, _Alpha);
             }
             ENDCG
         }
