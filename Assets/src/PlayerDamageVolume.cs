@@ -21,7 +21,7 @@ public class PlayerDamageVolume : MonoBehaviour
 
             if(causesjump)
             {
-                player.JumpExternal(0.75f);
+                player.JumpExternal(jumpmult);
             }
         }
     }

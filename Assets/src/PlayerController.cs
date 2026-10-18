@@ -98,8 +98,10 @@ public class PlayerController : MonoBehaviour
     private string animstate = "";
     private RadioObject currentradio = null;
     private MovingPlatform currentmovingplatform = null;
+    private RotatingPlatform currentrotatingplatform = null;
     private bool hascachedmovingplatformvelocity = false;
     private Vector3 cachedmovingplatformvelocity;
+    private Quaternion additionalrot = Quaternion.identity;
 
     public Health Health => health;
     public bool CanJump => !jumped && (grounded || coyotetimethread != null);
@@ -154,9 +156,10 @@ public class PlayerController : MonoBehaviour
                 AudioManager.Play2D(sfxland);
             }
 
-            if (groundhit.collider.TryGetComponent<MovingPlatform>(out MovingPlatform platform))
+            // -- moving platform
+            if (groundhit.collider.TryGetComponent<MovingPlatform>(out MovingPlatform mplat))
             {
-                currentmovingplatform = platform;
+                currentmovingplatform = mplat;
                 cachedmovingplatformvelocity = currentmovingplatform.FixedVelocity;
                 hascachedmovingplatformvelocity = true;
             }
@@ -167,12 +170,24 @@ public class PlayerController : MonoBehaviour
                 hascachedmovingplatformvelocity = false;
             }
 
+            // -- rotating platform
+            if(groundhit.collider.TryGetComponent< RotatingPlatform >(out RotatingPlatform rplat))
+            {
+                currentrotatingplatform = rplat;
+            }
+            else
+            {
+                currentrotatingplatform = null;
+            }
+
             character.Move(Vector3.down * groundhit.distance);
             grounded = true;
         }
         else
         {
-            if(grounded)
+            currentrotatingplatform = null;
+
+            if (grounded)
             {
                 // -- just left
                 if (coyotetimethread != null)
@@ -242,11 +257,9 @@ public class PlayerController : MonoBehaviour
         anim.SetFloat(kYVelocityAnimTag, yvelocityratio);
 
         CollisionFlags moveflags = character.Move(transform.forward.NoY().normalized * currentspeed * Time.deltaTime);
-
         Vector3 rotvel = Vector3.zero;
         Quaternion targetrot = Quaternion.LookRotation(movedir, Vector3.up);
         transform.localRotation = Extensions.SmoothDampQuat(transform.localRotation, targetrot, ref rotvel, turnsmoothing);
-
         if(transform.position.y < kKillPlaneHeight && state != EPlayerState.eFallingOffLevel)
         {
             state = EPlayerState.eFallingOffLevel;
@@ -279,6 +292,17 @@ public class PlayerController : MonoBehaviour
             else if (hascachedmovingplatformvelocity)
             {
                 CollisionFlags moveflags = character.Move(cachedmovingplatformvelocity);
+            }
+
+            if(currentrotatingplatform != null)
+            {
+                Vector3 localpos = transform.position - currentrotatingplatform.transform.position;
+                Vector3 rotpos = currentrotatingplatform.DeltaRot * localpos;
+                Vector3 rotmove = rotpos - localpos;
+
+                CollisionFlags moveflags = character.Move(rotmove + currentrotatingplatform.DeltaPos);
+
+                movedir = currentrotatingplatform.DeltaRot * movedir;
             }
         }
     }
