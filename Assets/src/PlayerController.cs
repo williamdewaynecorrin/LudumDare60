@@ -1,4 +1,3 @@
-using Palmmedia.ReportGenerator.Core.Reporting.Builders;
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEditor;
@@ -128,7 +127,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            Cursor.lockState = CursorLockMode.Confined;
+            Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
     }
@@ -220,7 +219,7 @@ public class PlayerController : MonoBehaviour
         if (state == EPlayerState.eFree)
         {
             // -- jump check
-            if (grounded && !jumped && Inputs.JumpTriggered())
+            if (CanJump && Inputs.JumpTriggered())
             {
                 Jump();
             }
@@ -315,6 +314,22 @@ public class PlayerController : MonoBehaviour
 
                 movedir = currentrotatingplatform.DeltaRot * movedir;
             }
+        }
+    }
+
+    private EPlayerState prepausedstate;
+    public void OnPaused(bool paused)
+    {
+        if (paused)
+        {
+            anim.speed = 0f;
+            prepausedstate = state;
+            state = EPlayerState.eFrozen;
+        }
+        else
+        {
+            anim.speed = 1f;
+            state = prepausedstate;
         }
     }
 
@@ -478,8 +493,7 @@ public class PlayerController : MonoBehaviour
 
     void OnGUI()
     {
-        if (!Application.isEditor)
-            return;
+        return;
 
         const float debuglineheight = 25f;
         Rect debugrect = new Rect(5, 5, 250f, debuglineheight);

@@ -5,6 +5,8 @@ public class RadioObject : MonoBehaviour
     private static int gRadioInstanceCount = 0;
 
     [SerializeField]
+    private int sortid = 0;
+    [SerializeField]
     private Inspectable inspect;
     [SerializeField]
     private int noterequirement = 1;
@@ -15,6 +17,7 @@ public class RadioObject : MonoBehaviour
     private UIHUD uihud;
     private int radioid;
 
+    public int SortID => sortid;
     public int NoteRequirement => noterequirement;
 
     void Start()
@@ -27,7 +30,7 @@ public class RadioObject : MonoBehaviour
         }
 
         radioid = gRadioInstanceCount++;
-        uihud.RegisterRadio(radioid);
+        uihud.RegisterRadio(radioid, sortid);
     }
 
     public void RestoreRadio()

@@ -6,6 +6,8 @@ public class PlayerCamera : MonoBehaviour
     [SerializeField]
     private PlayerController player;
     [SerializeField]
+    private SOGameConstants gameconstants;
+    [SerializeField]
     private Vector3 startingoffset;
     [SerializeField]
     private float sensitivityyaw = 1.0f;
@@ -49,9 +51,9 @@ public class PlayerCamera : MonoBehaviour
         // -- rotation early
         if (Inputs.RotateCameraHold())
         {
-            forcedyaw += Inputs.RotateCameraYAW() * sensitivityyaw;
+            forcedyaw += Inputs.RotateCameraYAW() * sensitivityyaw * gameconstants.sensitivitymult;
 
-            forcedpitch += Inputs.RotateCameraPitch() * sensitivitypitch;
+            forcedpitch += Inputs.RotateCameraPitch() * sensitivitypitch * gameconstants.sensitivitymult; ;
             forcedpitch = Mathf.Clamp(forcedpitch, pitchclamp.min, pitchclamp.max);
         }
 
@@ -92,8 +94,7 @@ public class PlayerCamera : MonoBehaviour
 
     void OnGUI()
     {
-        if (!Application.isEditor)
-            return;
+        return;
 
         const float debuglineheight = 25f;
         Rect debugrect = new Rect(5, 400f, 250f, debuglineheight);
